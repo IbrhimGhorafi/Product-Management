@@ -9,7 +9,7 @@ public class PriceValidator implements PriceValidation {
 
 
     public boolean isValidPrice(Long price) {
-        return price >= DEFAULT_MIN_PRICE;
+        return price > DEFAULT_MIN_PRICE;
     }
 
 

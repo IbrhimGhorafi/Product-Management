@@ -1,6 +1,7 @@
 package ighorafi.tpproduct.service;
 
-import ighorafi.tpproduct.dto.ProductDTO;
+import ighorafi.tpproduct.dto.ProductRequestDTO;
+import ighorafi.tpproduct.dto.ProductResponseDTO;
 import ighorafi.tpproduct.entity.Category;
 import ighorafi.tpproduct.entity.Product;
 import ighorafi.tpproduct.exception.InvalidPriceException;
@@ -13,65 +14,91 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
-    private final CategoryServiceImpl categoryServiceImpl;
+    private final CategoryService categoryService;
     private final ProductMapper productMapper;
-    private PriceValidator priceValidator;
+    private final PriceValidator priceValidator;
+
     @Override
-    public Product addNewProduct(ProductDTO product) {
-        if (!priceValidator.isValidPrice(product.getPrice())) {
-            throw new InvalidPriceException("The price must be greater than 0");
-        }
+    public ProductResponseDTO addNewProduct(ProductRequestDTO productRequestDTO) {
+        validatePrice(productRequestDTO.getPrice());
 
-        Product existingProduct = productRepository.findByCode(product.getCodeProduct());
-        if (existingProduct != null) {
-            throw new ProductAlreadyExistsException("Product already exists");
-        }
+        checkProductExistsByCode(productRequestDTO.getCodeProduct());
 
-        Category category = categoryServiceImpl.getCategoryByCode(product.getCodeCategory());
-        Product newProduct = productMapper.dtoToEntity(product, category);
+        Category category = getCategoryByCode(productRequestDTO.getCodeCategory());
+        Product newProduct = productMapper.dtoToEntity(productRequestDTO, category);
         productRepository.save(newProduct);
-        return newProduct;
+
+        return productMapper.entityToDTO(newProduct);
     }
 
     @Override
-    public Product updateProduct(Long codeProduct, ProductDTO product) {
-        Product existingProduct = productRepository.findByCode(codeProduct);
-        if (existingProduct == null) {
-            throw new ProductNotFoundException("Product not found");
-        }
+    public ProductResponseDTO updateProduct(Long codeProduct, ProductRequestDTO productRequestDTO) {
+        Product existingProduct = findProductByCode(codeProduct);
+        ensureProductFound(existingProduct);
 
-        if (!priceValidator.isValidPrice(product.getPrice())) {
-            throw new InvalidPriceException("The price must be greater than 0");
-        }
+        validatePrice(productRequestDTO.getPrice());
 
-        existingProduct.setLabel(product.getLabel());
-        existingProduct.setPrice(product.getPrice());
+        existingProduct.setLabel(productRequestDTO.getLabel());
+        existingProduct.setPrice(productRequestDTO.getPrice());
         productRepository.save(existingProduct);
-        return existingProduct;
+
+        return productMapper.entityToDTO(existingProduct);
     }
 
     @Override
-    public Product getProductByCode(Long codeProduct) {
-        return productRepository.findByCode(codeProduct);
+    public ProductResponseDTO getProductByCode(Long codeProduct) {
+        Product product = findProductByCode(codeProduct);
+        ensureProductFound(product);
+
+        return productMapper.entityToDTO(product);
     }
 
+
     @Override
-    public List<Product> getAllProduct() {
-        return productRepository.findAll();
+    public List<ProductResponseDTO> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        return products.stream()
+                .map(productMapper::entityToDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public void deleteProductById(Long idProduct) {
         Product existingProduct = productRepository.findById(idProduct).orElse(null);
-        if (existingProduct == null) {
-            throw new ProductNotFoundException("Product not found");
-        }
-        productRepository.deleteById(idProduct);
+        ensureProductFound(existingProduct);
+
+        productRepository.deleteByCode(idProduct);
     }
 
+    private void validatePrice(Long price) {
+        if (!priceValidator.isValidPrice(price)) {
+            throw new InvalidPriceException("The price must be greater than 0");
+        }
+    }
+
+    private void checkProductExistsByCode(Long codeProduct) {
+        if (productRepository.findByCode(codeProduct) != null) {
+            throw new ProductAlreadyExistsException("Product already exists");
+        }
+    }
+
+    private Product findProductByCode(Long codeProduct) {
+        return productRepository.findByCode(codeProduct);
+    }
+
+    private Category getCategoryByCode(Long codeCategory) {
+        return categoryService.getCategoryByCode(codeCategory);
+    }
+
+    private void ensureProductFound(Product product) {
+        if (product == null) {
+            throw new ProductNotFoundException("Product not found");
+        }
+    }
 }

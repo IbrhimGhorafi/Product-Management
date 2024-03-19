@@ -1,6 +1,7 @@
 package ighorafi.tpproduct.controller;
 
-import ighorafi.tpproduct.dto.ProductDTO;
+import ighorafi.tpproduct.dto.ProductRequestDTO;
+import ighorafi.tpproduct.dto.ProductResponseDTO;
 import ighorafi.tpproduct.entity.Product;
 import ighorafi.tpproduct.service.ProductService;
 import lombok.AllArgsConstructor;
@@ -17,20 +18,20 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<Product> addNewProduct(@RequestBody ProductDTO product) {
-        Product newProduct = productService.addNewProduct(product);
+    public ResponseEntity<ProductResponseDTO> addNewProduct(@RequestBody ProductRequestDTO product) {
+        ProductResponseDTO newProduct = productService.addNewProduct(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(newProduct);
     }
 
     @PutMapping("/{codeProduct}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long codeProduct, @RequestBody ProductDTO product) {
-        Product updatedProduct = productService.updateProduct(codeProduct, product);
+    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable Long codeProduct, @RequestBody ProductRequestDTO product) {
+        ProductResponseDTO updatedProduct = productService.updateProduct(codeProduct, product);
         return ResponseEntity.ok(updatedProduct);
     }
 
     @GetMapping("/{codeProduct}")
-    public ResponseEntity<Product> getProductByCode(@PathVariable Long codeProduct) {
-        Product product = productService.getProductByCode(codeProduct);
+    public ResponseEntity<ProductResponseDTO> getProductByCode(@PathVariable Long codeProduct) {
+        ProductResponseDTO product = productService.getProductByCode(codeProduct);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
@@ -38,17 +39,13 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.getAllProduct();
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
+        List<ProductResponseDTO> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
 
     @DeleteMapping("/{codeProduct}")
     public ResponseEntity<Void> deleteProductByCode(@PathVariable Long codeProduct) {
-        Product product = productService.getProductByCode(codeProduct);
-        if (product == null) {
-            return ResponseEntity.notFound().build();
-        }
         productService.deleteProductById(codeProduct);
         return ResponseEntity.noContent().build();
     }

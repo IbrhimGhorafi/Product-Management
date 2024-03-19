@@ -1,9 +1,16 @@
 package ighorafi.tpproduct.utils;
 
-public class PriceValidator {
-    private PriceValidator() {}
+import org.springframework.stereotype.Component;
 
-    public static boolean isGreaterThanZero(Long price){
-        return price>0;
+@Component
+public class PriceValidator implements PriceValidation {
+
+    private static final Long DEFAULT_MIN_PRICE = 0L;
+
+
+    public boolean isValidPrice(Long price) {
+        return price >= DEFAULT_MIN_PRICE;
     }
+
+
 }

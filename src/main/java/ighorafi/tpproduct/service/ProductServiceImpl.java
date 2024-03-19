@@ -20,10 +20,10 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryServiceImpl categoryServiceImpl;
     private final ProductMapper productMapper;
-
+    private PriceValidator priceValidator;
     @Override
     public Product addNewProduct(ProductDTO product) {
-        if (!PriceValidator.isGreaterThanZero(product.getPrice())) {
+        if (!priceValidator.isValidPrice(product.getPrice())) {
             throw new InvalidPriceException("The price must be greater than 0");
         }
 
@@ -45,7 +45,7 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductNotFoundException("Product not found");
         }
 
-        if (!PriceValidator.isGreaterThanZero(product.getPrice())) {
+        if (!priceValidator.isValidPrice(product.getPrice())) {
             throw new InvalidPriceException("The price must be greater than 0");
         }
 

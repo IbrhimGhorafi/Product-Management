@@ -2,7 +2,6 @@ package ighorafi.tpproduct.service;
 
 import ighorafi.tpproduct.dto.ProductRequestDTO;
 import ighorafi.tpproduct.dto.ProductResponseDTO;
-import ighorafi.tpproduct.entity.Product;
 
 import java.util.List;
 

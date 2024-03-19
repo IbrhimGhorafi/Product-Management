@@ -2,7 +2,6 @@ package ighorafi.tpproduct.controller;
 
 import ighorafi.tpproduct.dto.ProductRequestDTO;
 import ighorafi.tpproduct.dto.ProductResponseDTO;
-import ighorafi.tpproduct.entity.Product;
 import ighorafi.tpproduct.service.ProductService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
